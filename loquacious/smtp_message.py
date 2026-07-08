@@ -26,11 +26,16 @@ class SMTPMessage:
         message["To"] = formataddr((self.recipient.name, self.recipient.email))
         message["Subject"] = self.subject
         message["Message-ID"] = self.header_id
+        message["Message-Id"] = self.header_id
 
         for name, value in self.headers.items():
-            if name.lower() in {"from", "to", "subject", "message-id"}:
+            if name.lower() in {"to", "subject"}:
                 continue
-            message[name] = value
+
+            if name in message:
+                message.replace_header(name, value)
+            else:
+                message[name] = value
 
         message.set_content("This email requires an HTML-compatible email client.")
         message.add_alternative(self.html_body, subtype="html")

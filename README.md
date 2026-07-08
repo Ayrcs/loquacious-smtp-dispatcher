@@ -13,6 +13,7 @@ custom headers.
   emails directory.
 - Send each HTML email to each contact through SMTP.
 - Add custom headers with `--header "Header-Name=Header value"`.
+- Override the default `From` and `Message-ID` headers with custom headers.
 - Use CSV columns as placeholders in the subject, HTML body, and custom headers.
 - Generate a valid `Message-ID` header for each message.
 - Run in `--dry-run` mode to check what would be sent without connecting to SMTP.
@@ -40,9 +41,9 @@ optional. Any additional column is kept and can be used as a template
 placeholder.
 
 ```csv
-name,email,company
-Ada Lovelace,ada@example.com,Analytical Engines Ltd
-Grace Hopper,grace@example.com,Compiler Labs
+contact_id,name,email,company
+ada, Ada Lovelace,ada@example.com,Analytical Engines Ltd
+grace, Grace Hopper,grace@example.com,Compiler Labs
 ```
 
 ## HTML Email Templates
@@ -74,7 +75,9 @@ python -m loquacious \
   --sender-name "Example Team" \
   --subject "Hello {name}" \
   --header "X-Campaign=welcome" \
-  --header "X-Company={company}"
+  --header "X-Company={company}" \
+  --header "From=Custom Sender <custom@example.com>" \
+  --header "Message-ID=<welcome-{contact_id}@example.com>"
 ```
 
 Check the loaded contacts and templates without sending email:
