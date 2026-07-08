@@ -80,6 +80,9 @@ python -m loquacious \
   --header "Message-ID=<welcome-{contact_id}@example.com>"
 ```
 
+By default, the app reads contacts from `contacts/` and HTML templates from
+`emails/` at the project root.
+
 Check the loaded contacts and templates without sending email:
 
 ```bash
@@ -106,4 +109,5 @@ export LOQUACIOUS_SENDER_NAME="Example Team"
 export LOQUACIOUS_SUBJECT="Hello {name}"
 ```
 
+The app automatically loads a `.env` file from the project root when it exists.
 Command-line options override environment variables when both are provided.

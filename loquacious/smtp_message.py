@@ -22,22 +22,25 @@ class SMTPMessage:
 
     def to_email_message(self):
         message = EmailMessage()
-        message["From"] = formataddr((self.sender.name, self.sender.email))
-        message["To"] = formataddr((self.recipient.name, self.recipient.email))
-        message["Subject"] = self.subject
-        message["Message-ID"] = self.header_id
-        message["Message-Id"] = self.header_id
+        self._set_header(message, "From", formataddr((self.sender.name, self.sender.email)))
+        self._set_header(message, "To", formataddr((self.recipient.name, self.recipient.email)))
+        self._set_header(message, "Subject", self.subject)
+        self._set_header(message, "Message-ID", self.header_id)
 
         for name, value in self.headers.items():
             if name.lower() in {"to", "subject"}:
                 continue
 
-            if name in message:
-                message.replace_header(name, value)
-            else:
-                message[name] = value
+            self._set_header(message, name, value)
 
         message.set_content("This email requires an HTML-compatible email client.")
         message.add_alternative(self.html_body, subtype="html")
 
         return message
+
+    @staticmethod
+    def _set_header(message, name, value):
+        if name in message:
+            message.replace_header(name, value)
+        else:
+            message[name] = value

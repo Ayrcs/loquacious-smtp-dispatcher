@@ -4,8 +4,9 @@ from pathlib import Path
 
 class SMTPConfig:
     def __init__(self):
-        self.contacts_path = Path("contacts")
-        self.emails_path = Path("emails")
+        self.project_root = Path(__file__).resolve().parents[1]
+        self.contacts_path = self.project_root / "contacts"
+        self.emails_path = self.project_root / "emails"
         self.smtp_server = None
         self.smtp_port = 587
         self.smtp_username = None
@@ -24,6 +25,7 @@ class SMTPConfig:
 
     def init(self, kwargs=None):
         kwargs = kwargs or {}
+        self._load_dotenv()
 
         defaults = {
             "contacts_path": os.getenv("LOQUACIOUS_CONTACTS_PATH"),
@@ -40,12 +42,16 @@ class SMTPConfig:
             "delay_seconds": os.getenv("LOQUACIOUS_DELAY_SECONDS"),
         }
 
-        for key, value in {**defaults, **kwargs}.items():
+        for key, value in defaults.items():
             if value is not None and value != "":
                 setattr(self, key, value)
 
-        self.contacts_path = Path(self.contacts_path)
-        self.emails_path = Path(self.emails_path)
+        for key, value in kwargs.items():
+            if value is not None and value != "":
+                setattr(self, key, value)
+
+        self.contacts_path = self._resolve_path(self.contacts_path)
+        self.emails_path = self._resolve_path(self.emails_path)
         self.smtp_port = int(self.smtp_port)
         self.smtp_timeout = int(self.smtp_timeout)
         self.repeat_send_email = int(self.repeat_send_email)
@@ -71,3 +77,25 @@ class SMTPConfig:
         if isinstance(value, bool):
             return value
         return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+    def _load_dotenv(self):
+        env_path = self.project_root / ".env"
+        if not env_path.exists():
+            return
+
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip("'\"")
+
+            os.environ.setdefault(key, value)
+
+    def _resolve_path(self, value):
+        path = Path(value)
+        if path.is_absolute():
+            return path
+        return self.project_root / path
